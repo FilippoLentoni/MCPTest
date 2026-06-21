@@ -1,6 +1,4 @@
-# Gateway Resource Spec
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: AgentCore Gateway deployed via CDK with no manual steps
 The system SHALL deploy the AgentCore Gateway resource by running `cdk deploy` from the `cdk/` directory. No AWS Console interaction SHALL be required. The stack SHALL be re-deployable from a clean checkout on any machine with valid AWS credentials for the target account.
@@ -24,38 +22,6 @@ The system SHALL configure the AgentCore Gateway with `AuthorizerType: NONE` so 
 - **WHEN** an HTTP client sends a POST to the gateway MCP endpoint with body `{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}`
 - **AND** no `Authorization` header is present
 - **THEN** the gateway returns the list of registered tools with HTTP 200
-
----
-
-### Requirement: Gateway is ready after deploy
-The system SHALL result in an AgentCore Gateway in `READY` state after `cdk deploy` completes.
-
-#### Scenario: Gateway is ready
-- **WHEN** `aws bedrock-agentcore-control get-gateway --gateway-identifier <id>` is run after deploy
-- **THEN** the response contains `"status": "READY"` and a non-empty `gatewayUrl`
-
----
-
-### Requirement: Gateway metadata recorded in gateway_config.json
-The system SHALL have a `gateway_config.json` file at repo root, populated from CDK stack outputs, containing `gateway_id`, `mcp_endpoint_url`, `region`, and `account_id`.
-
-#### Scenario: Config file is complete
-- **WHEN** `gateway_config.json` is read after deploy
-- **THEN** all four fields are non-empty strings
-- **AND** `mcp_endpoint_url` is an HTTPS URL
-
----
-
-### Requirement: Gateway has a registered get_weather MCP tool
-The system SHALL have a `AWS::BedrockAgentCore::GatewayTarget` resource deployed in `RegisterWeatherToolStack` that registers the `weather-tool` Lambda as the `get_weather` MCP tool on the gateway.
-
-#### Scenario: GatewayTarget is READY
-- **WHEN** `aws bedrock-agentcore-control get-gateway-target --gateway-identifier <id> --target-id <id>` is run after deploy
-- **THEN** the response contains `"status": "READY"`
-
-#### Scenario: GatewayTarget routes to the weather Lambda
-- **WHEN** an MCP client calls the `get_weather` tool on the gateway
-- **THEN** the gateway invokes `arn:aws:lambda:us-east-1:169976659173:function:weather-tool` with the tool input as the event payload
 
 ---
 

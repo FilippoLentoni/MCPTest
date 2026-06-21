@@ -39,7 +39,7 @@ class GatewayStack(cdk.Stack):
             type="AWS::BedrockAgentCore::Gateway",
             properties={
                 "Name": "mcp-tools-gateway",
-                "AuthorizerType": "AWS_IAM",
+                "AuthorizerType": "NONE",
                 "ProtocolType": "MCP",
                 "RoleArn": gateway_role.role_arn,
                 "Description": "MCP entry point for AI agent tools",
