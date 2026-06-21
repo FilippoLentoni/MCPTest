@@ -5,7 +5,7 @@ To expose a weather tool through the AgentCore MCP Gateway, we need a Lambda fun
 ## What Changes
 
 - New AWS Lambda function `weather-tool` that accepts a city name and returns current weather data by calling the wttr.in public API
-- AWS SAM template for reproducible deployment to account `columbia` (169976659173)
+- AWS CDK stack (`WeatherToolStack`) for reproducible deployment to account `columbia` (169976659173) and portable to any other account
 
 ## Capabilities
 
@@ -20,5 +20,5 @@ To expose a weather tool through the AgentCore MCP Gateway, we need a Lambda fun
 ## Impact
 
 - New Lambda function in `columbia` account, `us-east-1` region
-- New SAM stack `weather-tool-stack`
+- New CDK stack `WeatherToolStack` added to the shared CDK app in `cdk/`
 - No breaking changes to existing resources; tool registration happens in the separate `register-tools` change

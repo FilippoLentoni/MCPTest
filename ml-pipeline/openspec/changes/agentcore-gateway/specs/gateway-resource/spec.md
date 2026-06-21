@@ -1,40 +1,44 @@
 ## ADDED Requirements
 
-### Requirement: AgentCore Gateway resource exists and is active
-The system SHALL have an AgentCore Gateway resource in the `columbia` AWS account (169976659173), region `us-east-1`, in `ACTIVE` state.
+### Requirement: AgentCore Gateway deployed via CDK with no manual steps
+The system SHALL deploy the AgentCore Gateway resource by running `cdk deploy` from the `cdk/` directory. No AWS Console interaction SHALL be required. The stack SHALL be re-deployable from a clean checkout on any machine with valid AWS credentials for the target account.
+
+#### Scenario: Fresh deploy from a clean checkout
+- **WHEN** a developer clones the repo, installs CDK dependencies, and runs `cdk deploy McpGatewayStack --profile columbia`
+- **THEN** the CloudFormation stack `McpGatewayStack` is created in account `169976659173`, region `us-east-1`
+- **AND** the stack reaches `CREATE_COMPLETE` with no manual intervention
+
+#### Scenario: Deploy to a different account
+- **WHEN** the `account` value in `GatewayStack`'s `cdk.Environment(...)` is changed to a different account ID
+- **AND** `cdk deploy` is run with credentials for that account
+- **THEN** an identical gateway is created in that account — no other code changes required
+
+---
+
+### Requirement: Gateway is active after deploy
+The system SHALL result in an AgentCore Gateway in `ACTIVE` state after `cdk deploy` completes.
 
 #### Scenario: Gateway is active
-- **WHEN** a developer runs `aws bedrock-agentcore get-gateway --gateway-id <id> --region us-east-1`
+- **WHEN** `aws bedrock-agentcore get-gateway --gateway-id <id>` is run after deploy
 - **THEN** the response contains `"status": "ACTIVE"` and a non-empty `endpointUrl`
 
 ---
 
-### Requirement: Gateway metadata is recorded in gateway_config.json
-The system SHALL have a `gateway_config.json` file at the repo root containing the gateway ID, MCP endpoint URL, region, and account ID so that downstream changes (`register-tools`) can reference it without manual lookup.
+### Requirement: Gateway metadata recorded in gateway_config.json
+The system SHALL have a `gateway_config.json` file at repo root, populated from CDK stack outputs, containing `gateway_id`, `mcp_endpoint_url`, `region`, and `account_id`.
 
-#### Scenario: Config file is present and complete
-- **WHEN** a developer opens `gateway_config.json`
-- **THEN** all four fields are populated: `gateway_id`, `mcp_endpoint_url`, `region`, `account_id`
-- **AND** `mcp_endpoint_url` is an HTTPS URL ending in `/mcp`
+#### Scenario: Config file is complete
+- **WHEN** `gateway_config.json` is read after deploy
+- **THEN** all four fields are non-empty strings
+- **AND** `mcp_endpoint_url` is an HTTPS URL
 
 ---
 
-### Requirement: Claude Code can connect to the gateway as an MCP server
-The system SHALL be verifiable by adding the gateway to Claude Code's MCP server config and confirming it shows as connected (even with no tools registered yet).
+### Requirement: Claude Code connects to the gateway via MCP
+The system SHALL be verifiable by adding the gateway to Claude Code's MCP server config and confirming it connects successfully.
 
-#### Scenario: Empty gateway connects successfully
-- **WHEN** the following entry is added to Claude Code MCP config:
-  ```json
-  {
-    "mcpServers": {
-      "agentcore-gateway": {
-        "type": "aws",
-        "url": "<mcp_endpoint_url from gateway_config.json>",
-        "region": "us-east-1"
-      }
-    }
-  }
-  ```
+#### Scenario: Empty gateway connects
+- **WHEN** the MCP config entry is added with `"type": "aws"` and the URL from `gateway_config.json`
 - **AND** the developer has valid IAM credentials for the `columbia` account
-- **THEN** running `/mcp` in a Claude Code session shows `agentcore-gateway` with status `connected`
-- **AND** the tool list is empty (no tools registered yet — expected at this stage)
+- **THEN** `/mcp` in a Claude Code session shows `agentcore-gateway` as `connected`
+- **AND** the tool list is empty (expected — no tools registered yet)

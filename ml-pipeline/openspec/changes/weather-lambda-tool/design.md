@@ -2,15 +2,17 @@
 
 Greenfield Lambda function. No existing code to migrate. The function will be registered in an AWS AgentCore Gateway so that a Claude Code agent connecting via MCP can invoke it during a conversation. The target AWS account is `columbia` (169976659173), region `us-east-1`.
 
-The overall system has three planned features: `weather-lambda-tool` (this change), `stock-lambda-tool`, and `agentcore-gateway` (which will create the Gateway resource itself). This change assumes the Gateway already exists or is created manually before registration; the `agentcore-gateway` change will codify it in IaC.
+All AWS infrastructure in this project is deployed via AWS CDK (Python) — no SAM, no manual console steps. The CDK app lives in `cdk/` (established in the `agentcore-gateway` change); this change adds one stack file to it.
+
+The overall system has four planned changes: `agentcore-gateway`, `weather-lambda-tool` (this change), `stock-lambda-tool`, and `register-tools`.
 
 ## Goals / Non-Goals
 
 **Goals:**
 - Lambda returns structured weather JSON (temp °C/°F, description, humidity, wind km/h)
 - Zero external API keys required in this iteration (use wttr.in public endpoint)
-- SAM template deploys the function and registers it as an AgentCore tool
-- Agent can invoke `get_weather(city="London")` through the MCP Gateway and receive readable weather data
+- CDK stack deploys the function reproducibly to any account
+- Agent can invoke `get_weather(city="London")` through the MCP Gateway and receive readable weather data once tool registration is done in the `register-tools` change
 
 **Non-Goals:**
 - Caching or rate-limit handling (wttr.in has generous limits for demo use)
@@ -34,12 +36,14 @@ Consistent with team's Python toolchain. `urllib.request` from stdlib handles th
 **Alternatives considered:**
 - Node.js 20 — no strong reason to switch runtimes for a simple HTTP wrapper
 
-### D3: SAM for deployment
-AWS SAM (`template.yaml`) is the lightest-weight IaC option that natively understands Lambda. A single `sam deploy` command deploys the function. CDK adds unnecessary abstraction for a two-resource stack.
+### D3: AWS CDK (Python) for deployment
+This change adds `cdk/stacks/weather_tool_stack.py` to the shared CDK app established in `agentcore-gateway`. The Lambda is defined using the `aws_cdk.aws_lambda.Function` L2 construct. Deploy with `cdk deploy WeatherToolStack --profile columbia`.
+
+Using CDK is consistent with the project-wide decision (see `agentcore-gateway` design D1): all infrastructure is CDK so stacks are portable, reproducible, and diffable in git.
 
 **Alternatives considered:**
-- AWS CDK — better for large stacks; overkill here
-- Terraform — adds HCL dependency, slower iteration
+- SAM — Lambda-native but a separate toolchain; mixing SAM and CDK adds complexity and the project already uses CDK
+- Terraform — adds HCL and a second state management system; rejected
 
 ### D4: Lambda response format for AgentCore
 AgentCore expects the Lambda to return a response conforming to the MCP tool result contract. The function returns:
@@ -88,4 +92,4 @@ The `get_weather` tool is registered with this input schema:
 
 ## Open Questions
 
-- Should the AgentCore tool registration be done via SAM (using a custom resource) or via a separate `aws bedrock-agent` CLI call post-deploy? (Deferred — tasks.md uses CLI for now; IaC approach tracked in `agentcore-gateway` change.)
+- Tool registration (wiring the Lambda ARN into the Gateway) is handled in the separate `register-tools` change.

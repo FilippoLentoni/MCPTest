@@ -37,12 +37,18 @@ The system SHALL return weather data in a consistent, machine-readable JSON stru
 
 ---
 
-### Requirement: Deployable via SAM in the columbia account
-The system SHALL include a SAM `template.yaml` that, when deployed with `sam deploy`, creates the Lambda function in account `columbia` (169976659173), region `us-east-1`, with the function name `weather-tool`.
+### Requirement: Deployable via CDK with no manual steps
+The system SHALL include a CDK stack (`WeatherToolStack` in `cdk/stacks/weather_tool_stack.py`) that, when deployed with `cdk deploy WeatherToolStack`, creates the Lambda function in account `columbia` (169976659173), region `us-east-1`, with the function name `weather-tool`. No AWS Console interaction SHALL be required.
 
-#### Scenario: SAM deploy succeeds
-- **WHEN** `sam deploy --guided` is run with valid AWS credentials for the `columbia` account
-- **THEN** the CloudFormation stack `weather-tool-stack` is created with a `WeatherTool` Lambda resource in state `CREATE_COMPLETE`
+#### Scenario: CDK deploy succeeds
+- **WHEN** `cdk deploy WeatherToolStack --profile columbia` is run with valid credentials for the `columbia` account
+- **THEN** the CloudFormation stack `WeatherToolStack` is created with a Lambda function resource in state `CREATE_COMPLETE`
+- **AND** CDK prints a `WeatherToolArn` output value
+
+#### Scenario: Deploy to a different account
+- **WHEN** the `account` in `WeatherToolStack`'s `cdk.Environment(...)` is changed to a different account ID
+- **AND** `cdk deploy` is run with credentials for that account
+- **THEN** an identical Lambda function is created in that account — no other code changes required
 
 #### Scenario: Lambda execution role
 - **WHEN** the stack is deployed
@@ -50,16 +56,17 @@ The system SHALL include a SAM `template.yaml` that, when deployed with `sam dep
 
 ---
 
-### Requirement: Callable with curl for smoke testing
+### Requirement: Smoke-testable via the AWS CLI after deploy
 The system SHALL support direct Lambda invocation via the AWS CLI so that a developer can verify the function independently of the AgentCore Gateway.
 
 #### Scenario: Direct invocation via AWS CLI
 - **WHEN** a developer runs:
-  ```
+  ```bash
   aws lambda invoke \
     --function-name weather-tool \
     --payload '{"city": "Rome"}' \
     --cli-binary-format raw-in-base64-out \
+    --region us-east-1 --profile columbia \
     response.json
   ```
 - **THEN** `response.json` contains a valid weather content block for Rome
