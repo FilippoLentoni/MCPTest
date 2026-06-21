@@ -5,7 +5,6 @@ To expose a weather tool through the AgentCore MCP Gateway, we need a Lambda fun
 ## What Changes
 
 - New AWS Lambda function `weather-tool` that accepts a city name and returns current weather data by calling the wttr.in public API
-- AgentCore Gateway tool registration that exposes the Lambda as an MCP-compatible tool with a typed JSON Schema input/output contract
 - AWS SAM template for reproducible deployment to account `columbia` (169976659173)
 
 ## Capabilities
@@ -13,7 +12,6 @@ To expose a weather tool through the AgentCore MCP Gateway, we need a Lambda fun
 ### New Capabilities
 
 - `weather-tool`: Lambda function that takes a `city` string and returns current conditions (temperature, description, humidity, wind) for that city
-- `agentcore-weather-registration`: Tool registration in the AgentCore Gateway that maps the `get_weather` tool name to the Lambda ARN with a typed input schema
 
 ### Modified Capabilities
 
@@ -23,5 +21,4 @@ To expose a weather tool through the AgentCore MCP Gateway, we need a Lambda fun
 
 - New Lambda function in `columbia` account, `us-east-1` region
 - New SAM stack `weather-tool-stack`
-- AgentCore Gateway gains one registered tool (`get_weather`)
-- No breaking changes to existing resources
+- No breaking changes to existing resources; tool registration happens in the separate `register-tools` change

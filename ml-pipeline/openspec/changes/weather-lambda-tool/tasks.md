@@ -37,28 +37,7 @@
   - `capabilities = "CAPABILITY_IAM"`
   - Profile or account ID pointing to `columbia` (169976659173)
 
-## 4. AgentCore Registration Script (`scripts/register_tools.sh`)
-
-- [ ] 4.1 Create `scripts/register_tools.sh` with a shebang and `set -euo pipefail`
-- [ ] 4.2 Read `GATEWAY_ID` from environment variable; exit 1 with usage message if not set
-- [ ] 4.3 Fetch `WEATHER_TOOL_ARN` from CloudFormation output using:
-  ```bash
-  aws cloudformation describe-stacks \
-    --stack-name weather-tool-stack \
-    --query "Stacks[0].Outputs[?OutputKey=='WeatherToolArn'].OutputValue" \
-    --output text
-  ```
-- [ ] 4.4 Check if `get_weather` tool is already registered in the gateway; skip creation if it exists
-- [ ] 4.5 If not registered, call `aws bedrock-agentcore create-gateway-tool` with:
-  - `--gateway-id $GATEWAY_ID`
-  - `--name get_weather`
-  - `--description "Returns current weather for a given city"`
-  - `--action-type LAMBDA`
-  - `--lambda-arn $WEATHER_TOOL_ARN`
-  - Input schema JSON (city parameter as defined in spec)
-- [ ] 4.6 Print the registered tool ARN and exit 0
-
-## 5. Unit Tests (`tests/test_weather_handler.py`)
+## 4. Unit Tests (`tests/test_weather_handler.py`)
 
 - [ ] 5.1 Write test `test_valid_city_returns_weather_fields` — mock `urllib.request.urlopen` to return a sample wttr.in JSON fixture; assert all six output keys are present in the content text
 - [ ] 5.2 Write test `test_missing_city_returns_error_content` — invoke handler with `{}` and assert response contains an error message in content, not an exception
@@ -82,27 +61,4 @@
   ```
   Confirm response contains `temperature_c`, `condition`, and `city` fields.
 - [ ] 6.4 Confirm Lambda execution role has only `AWSLambdaBasicExecutionRole` (check IAM console or `aws iam list-attached-role-policies`)
-
-## 7. AgentCore Registration
-
-- [ ] 7.1 Ensure the AgentCore Gateway exists in `columbia` account. If it does not, create one manually via the AWS Console (Bedrock → AgentCore → Gateways → Create). Note the `GATEWAY_ID`.
-- [ ] 7.2 Export `GATEWAY_ID` and run `bash scripts/register_tools.sh`
-- [ ] 7.3 Verify registration: `aws bedrock-agentcore list-gateway-tools --gateway-id $GATEWAY_ID` — confirm `get_weather` appears in the list
-- [ ] 7.4 Note the Gateway MCP endpoint URL from the console or CLI output
-
-## 8. End-to-End MCP Verification
-
-- [ ] 8.1 Add the AgentCore Gateway as an MCP server in Claude Code settings:
-  ```json
-  {
-    "mcpServers": {
-      "agentcore-gateway": {
-        "type": "url",
-        "url": "<gateway-mcp-endpoint-url>"
-      }
-    }
-  }
-  ```
-- [ ] 8.2 Open a new Claude Code conversation and run `/mcp` — confirm `agentcore-gateway` shows as connected and `get_weather` appears in the tool list
-- [ ] 8.3 Ask the agent: "What is the weather in Tokyo right now?" — confirm it calls `get_weather(city="Tokyo")` and returns a response with temperature and conditions
-- [ ] 8.4 Ask the agent: "What is the weather in an invalid city name like 'xyzzy12345'?" — confirm it handles the error gracefully and does not crash
+- [ ] 6.5 Record the deployed Lambda ARN (`aws lambda get-function --function-name weather-tool --query 'Configuration.FunctionArn' --output text`) and save it — it is required by the `register-tools` change
