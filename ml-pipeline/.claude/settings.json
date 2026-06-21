@@ -1,9 +1,3 @@
 {
-  "mcpServers": {
-    "agentcore-gateway": {
-      "type": "aws",
-      "url": "https://mcp-tools-gateway-v5vpj8g3tk.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp",
-      "region": "us-east-1"
-    }
-  }
+  "enableAllProjectMcpServers": true
 }
