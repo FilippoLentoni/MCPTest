@@ -19,8 +19,8 @@ The system SHALL deploy the AgentCore Gateway resource by running `cdk deploy` f
 The system SHALL result in an AgentCore Gateway in `ACTIVE` state after `cdk deploy` completes.
 
 #### Scenario: Gateway is active
-- **WHEN** `aws bedrock-agentcore get-gateway --gateway-id <id>` is run after deploy
-- **THEN** the response contains `"status": "ACTIVE"` and a non-empty `endpointUrl`
+- **WHEN** `aws bedrock-agentcore-control get-gateway --gateway-identifier <id>` is run after deploy
+- **THEN** the response contains `"status": "READY"` and a non-empty `gatewayUrl`
 
 ---
 
