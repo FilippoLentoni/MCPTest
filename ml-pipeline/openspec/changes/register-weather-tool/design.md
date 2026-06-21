@@ -51,9 +51,9 @@ ToolDefinition:
     Required: [city]
 ```
 
-### D6 — No new IAM resources
+### D6 — CredentialProviderConfigurations: GATEWAY_IAM_ROLE
 
-The gateway role (`McpGatewayStack`) already has `lambda:InvokeFunction` with a `*` resource. No additional role or resource-based policy is needed.
+`CredentialProviderConfigurations` is required at runtime for Lambda targets (CFN docs mark it optional but the API rejects the request without it). Use `CredentialProviderType: GATEWAY_IAM_ROLE` — the gateway authenticates to the Lambda using its existing IAM role, which already carries `lambda:InvokeFunction *`. No additional role or resource-based policy is needed.
 
 ## CFN shape
 
