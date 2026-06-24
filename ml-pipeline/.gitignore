@@ -1,0 +1,10 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.joblib
+*.egg-info/
+dist/
+.pytest_cache/
+cdk/cdk.out/
+cdk/.venv/
